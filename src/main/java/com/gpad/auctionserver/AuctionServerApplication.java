@@ -1,5 +1,8 @@
 package com.gpad.auctionserver;
 
+import com.gpad.auctionserver.health.AuctionHealthCheck;
+import com.gpad.auctionserver.resources.AuctionResource;
+import com.gpad.auctionserver.resources.VersionResource;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -23,7 +26,13 @@ public class AuctionServerApplication extends Application<AuctionServerConfigura
     @Override
     public void run(final AuctionServerConfiguration configuration,
                     final Environment environment) {
-        // TODO: implement application
+
+        final AuctionHealthCheck healthCheck = new AuctionHealthCheck();
+        VersionResource versionResource = new VersionResource(configuration.getAuctionServerVersion());
+
+        environment.healthChecks().register("auction", healthCheck);
+        environment.jersey().register(new AuctionResource());
+        environment.jersey().register(versionResource);
     }
 
 }

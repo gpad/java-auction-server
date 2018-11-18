@@ -1,3 +1,5 @@
+auctionServerVersion: v1-prod
+
 logging:
   level: INFO
   loggers:
