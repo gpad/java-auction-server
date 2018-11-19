@@ -4,6 +4,8 @@ import com.gpad.auctionserver.health.AuctionHealthCheck;
 import com.gpad.auctionserver.resources.AuctionResource;
 import com.gpad.auctionserver.resources.VersionResource;
 import io.dropwizard.Application;
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -20,8 +22,12 @@ public class AuctionServerApplication extends Application<AuctionServerConfigura
 
     @Override
     public void initialize(final Bootstrap<AuctionServerConfiguration> bootstrap) {
-        // TODO: application initialization
-    }
+        bootstrap.addBundle(new MigrationsBundle<AuctionServerConfiguration>() {
+            @Override
+            public DataSourceFactory getDataSourceFactory(AuctionServerConfiguration configuration) {
+                return configuration.getDataSourceFactory();
+            }
+        });    }
 
     @Override
     public void run(final AuctionServerConfiguration configuration,

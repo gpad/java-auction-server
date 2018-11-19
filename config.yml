@@ -4,3 +4,9 @@ logging:
   level: INFO
   loggers:
     com.gpad.auctionserver: DEBUG
+
+database:
+  driverClass: org.h2.Driver
+  user: sa
+  password: sa
+  url: jdbc:h2:./target/test-example
