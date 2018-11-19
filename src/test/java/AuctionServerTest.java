@@ -1,13 +1,17 @@
 import com.gpad.auctionserver.AuctionServerApplication;
 import com.gpad.auctionserver.AuctionServerConfiguration;
 import com.gpad.auctionserver.api.Auction;
+import com.gpad.auctionserver.db.AuctionsRepository;
+import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.testing.ConfigOverride;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.jdbi.v3.core.Jdbi;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +52,7 @@ public class AuctionServerTest {
 
     @Test
     public void listOfAuctionsShouldAlwaysContainExampleAutions() throws Exception {
-        final List<Auction> auctions = RULE.client().target("http://localhost:" + RULE.getLocalPort() + "/auctions")
+        final List<Auction> auctions = getClient().target("http://localhost:" + RULE.getLocalPort() + "/auctions")
                 .request()
                 .get(new GenericType<List<Auction>>() {
                 });
@@ -58,16 +62,30 @@ public class AuctionServerTest {
 
     @Test
     public void getASingleAuctionByIdReturnAnAuctionObject() throws Exception {
-        final Auction saying = RULE.client().target("http://localhost:" + RULE.getLocalPort() + "/auctions/666")
+        AuctionsRepository auctionsRepository = getAuctionsRepository();
+        Auction expectedAuction = new Auction(666, "the number of the beast");
+        auctionsRepository.insert(expectedAuction);
+
+        final Auction saying = getClient().target("http://localhost:" + RULE.getLocalPort() + "/auctions/666")
                 .request()
                 .get(Auction.class);
 
-        assertThat(saying).isEqualTo(new Auction(666, "666"));
+        assertThat(saying).isEqualTo(expectedAuction);
+    }
+
+    private Client getClient() {
+        return RULE.client();
+    }
+
+    private AuctionsRepository getAuctionsRepository() {
+        final JdbiFactory factory = new JdbiFactory();
+        final Jdbi jdbi = factory.build(RULE.getEnvironment(), RULE.getConfiguration().getDataSourceFactory(), "h2");
+        return jdbi.onDemand(AuctionsRepository.class);
     }
 
     @Test
     public void getVersionShouldBeDefinedInConfiguration() throws Exception {
-        final String version = RULE.client().target("http://localhost:" + RULE.getLocalPort() + "/version")
+        final String version = getClient().target("http://localhost:" + RULE.getLocalPort() + "/version")
                 .request()
                 .get(String.class);
 

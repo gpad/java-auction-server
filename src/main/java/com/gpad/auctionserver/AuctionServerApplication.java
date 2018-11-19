@@ -5,9 +5,11 @@ import com.gpad.auctionserver.resources.AuctionResource;
 import com.gpad.auctionserver.resources.VersionResource;
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.jdbi.v3.core.Jdbi;
 
 public class AuctionServerApplication extends Application<AuctionServerConfiguration> {
 
@@ -33,11 +35,16 @@ public class AuctionServerApplication extends Application<AuctionServerConfigura
     public void run(final AuctionServerConfiguration configuration,
                     final Environment environment) {
 
+
+        final JdbiFactory factory = new JdbiFactory();
+        final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "h2");
+
+
         final AuctionHealthCheck healthCheck = new AuctionHealthCheck();
         VersionResource versionResource = new VersionResource(configuration.getAuctionServerVersion());
 
         environment.healthChecks().register("auction", healthCheck);
-        environment.jersey().register(new AuctionResource());
+        environment.jersey().register(new AuctionResource(jdbi));
         environment.jersey().register(versionResource);
     }
 

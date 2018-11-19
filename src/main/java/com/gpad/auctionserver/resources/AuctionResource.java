@@ -6,6 +6,8 @@ package com.gpad.auctionserver.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.gpad.auctionserver.api.Auction;
+import com.gpad.auctionserver.db.AuctionsRepository;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -19,7 +21,10 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class AuctionResource {
 
-    public AuctionResource() {
+    private Jdbi jdbi;
+
+    public AuctionResource(Jdbi jdbi) {
+        this.jdbi = jdbi;
     }
 
     @GET
@@ -32,6 +37,10 @@ public class AuctionResource {
     @Timed
     @Path("/{id}")
     public Auction get(@PathParam("id") int id) {
-        return new Auction(id, String.format("%d", id));
+
+        AuctionsRepository repository = jdbi.onDemand(AuctionsRepository.class);
+        return repository.findById(id);
+
+//        return new Auction(id, String.format("%d", id));
     }
 }
